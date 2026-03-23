@@ -1,0 +1,373 @@
+/* ============================================================
+   GLOBAL PIP-BOY STYLE
+============================================================ */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: "Courier New", monospace;
+}
+
+body {
+  background: #050805;
+  color: #00ff66;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+/* ============================================================
+   PIP-BOY FRAME
+============================================================ */
+#pipboy-frame {
+  position: relative;
+  width: 900px;
+  height: 550px;
+  border-radius: 25px;
+  border: 4px solid #0f3b1f;
+  background: radial-gradient(circle at top, #0b2a16 0%, #020804 60%, #000000 100%);
+  box-shadow: 0 0 40px #00ff66;
+  overflow: hidden;
+}
+
+/* Scanlines */
+#scanlines {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  background-image: linear-gradient(
+    rgba(0, 0, 0, 0.2) 50%,
+    rgba(0, 0, 0, 0.4) 50%
+  );
+  background-size: 100% 3px;
+  mix-blend-mode: multiply;
+  opacity: 0.4;
+}
+
+/* ============================================================
+   HEADER
+============================================================ */
+#pipboy-header {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 20px;
+  border-bottom: 2px solid #0f3b1f;
+  font-size: 14px;
+}
+
+.header-left,
+.header-center,
+.header-right {
+  text-shadow: 0 0 4px #00ff66;
+}
+
+/* ============================================================
+   MAIN LAYOUT
+============================================================ */
+#pipboy-main {
+  display: flex;
+  height: calc(100% - 80px);
+}
+
+/* ============================================================
+   SIDEBAR
+============================================================ */
+#pipboy-sidebar {
+  width: 160px;
+  border-right: 2px solid #0f3b1f;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.tab-button {
+  background: transparent;
+  border: 1px solid #0f3b1f;
+  color: #00ff66;
+  padding: 6px 8px;
+  text-align: left;
+  cursor: pointer;
+  font-size: 12px;
+  text-shadow: 0 0 4px #00ff66;
+  transition: background 0.2s;
+}
+
+.tab-button:hover {
+  background: rgba(0, 255, 102, 0.15);
+}
+
+.tab-button.active {
+  background: rgba(0, 255, 102, 0.25);
+}
+
+/* ============================================================
+   CONTENT AREA
+============================================================ */
+#pipboy-content {
+  flex: 1;
+  padding: 15px 20px;
+  font-size: 14px;
+  overflow-y: auto;
+}
+
+h1 {
+  font-size: 20px;
+  margin-bottom: 10px;
+  text-shadow: 0 0 6px #00ff66;
+}
+
+.label {
+  font-weight: bold;
+}
+
+/* ============================================================
+   STATUS TAB
+============================================================ */
+.status-grid {
+  display: flex;
+  gap: 40px;
+  margin-top: 10px;
+}
+
+.status-grid p {
+  margin-bottom: 6px;
+}
+
+/* Recruit button */
+#recruit-button {
+  padding: 6px 10px;
+  border: 1px solid #0f3b1f;
+  background: rgba(0, 255, 102, 0.1);
+  color: #00ff66;
+  cursor: pointer;
+  margin-bottom: 10px;
+  text-shadow: 0 0 4px #00ff66;
+}
+
+#recruit-button:hover {
+  background: rgba(0, 255, 102, 0.25);
+}
+
+/* ============================================================
+   MAP TAB
+============================================================ */
+#location-list label {
+  display: flex;
+  align-items: center;
+  margin-bottom: 6px;
+  cursor: pointer;
+  gap: 6px;
+}
+
+/* ---------------------------
+   RADIO BUTTONS — PIP-BOY STYLE
+--------------------------- */
+#location-list input[type="radio"] {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+
+  width: 14px;
+  height: 14px;
+  border: 2px solid #00ff66;
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+  position: relative;
+  box-shadow: 0 0 4px #00ff66;
+}
+
+#location-list input[type="radio"]:hover {
+  box-shadow: 0 0 8px #00ff66;
+}
+
+#location-list input[type="radio"]:checked::before {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 8px;
+  height: 8px;
+  background: #00ff66;
+  border-radius: 50%;
+  box-shadow: 0 0 6px #00ff66;
+}
+
+#travel-button {
+  margin-top: 8px;
+  padding: 4px 10px;
+  background: transparent;
+  border: 1px solid #0f3b1f;
+  color: #00ff66;
+  cursor: pointer;
+}
+
+/* ============================================================
+   DROPDOWN (SELECT) — PIP-BOY STYLE
+============================================================ */
+select {
+  background: #001a0d;
+  color: #00ff66;
+  border: 2px solid #0f3b1f;
+  padding: 6px 8px;
+  font-size: 14px;
+  border-radius: 4px;
+  cursor: pointer;
+  text-shadow: 0 0 4px #00ff66;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+}
+
+select:hover,
+select:focus {
+  background: #003d20;
+  outline: none;
+  box-shadow: 0 0 6px #00ff66;
+}
+
+/* Optional custom arrow wrapper */
+.select-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.select-wrapper::after {
+  content: "▼";
+  color: #00ff66;
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  text-shadow: 0 0 4px #00ff66;
+}
+
+/* ============================================================
+   INVENTORY TAB
+============================================================ */
+#inventory-list {
+  margin: 10px 0;
+}
+
+.inventory-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 6px;
+  cursor: pointer;
+  border-bottom: 1px solid #0f3b1f;
+}
+
+.inventory-item:hover {
+  background: rgba(0, 255, 102, 0.1);
+}
+
+.inventory-item.selected {
+  background: rgba(0, 255, 102, 0.25);
+}
+
+.inventory-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.inventory-actions button {
+  padding: 4px 10px;
+  background: transparent;
+  border: 1px solid #0f3b1f;
+  color: #00ff66;
+  cursor: pointer;
+}
+
+/* ============================================================
+   COMBAT TAB
+============================================================ */
+.combat-actions {
+  display: flex;
+  gap: 8px;
+  margin: 10px 0;
+}
+
+.combat-actions button {
+  padding: 4px 10px;
+  background: transparent;
+  border: 1px solid #0f3b1f;
+  color: #00ff66;
+  cursor: pointer;
+}
+
+/* ============================================================
+   ALLIES TAB
+============================================================ */
+#allies-list {
+  margin-top: 10px;
+}
+
+.ally-entry {
+  border-bottom: 1px solid #0f3b1f;
+  padding: 6px 0;
+  margin-bottom: 6px;
+}
+
+.ally-entry p {
+  margin-bottom: 4px;
+}
+
+/* Rarity colors */
+.rarity-common {
+  color: #9e9e9e;
+}
+
+.rarity-uncommon {
+  color: #4caf50;
+}
+
+.rarity-rare {
+  color: #2196f3;
+}
+
+.rarity-legendary {
+  color: #ff9800;
+  text-shadow: 0 0 6px #ff9800;
+}
+
+/* ============================================================
+   LOG TAB
+============================================================ */
+#log-output {
+  margin-top: 10px;
+  max-height: 350px;
+  overflow-y: auto;
+  border-top: 1px solid #0f3b1f;
+  padding-top: 8px;
+}
+
+#log-output p {
+  margin-bottom: 4px;
+}
+
+/* ============================================================
+   FOOTER
+============================================================ */
+#pipboy-footer {
+  height: 40px;
+  border-top: 2px solid #0f3b1f;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  font-size: 13px;
+}
+
+/* ============================================================
+   UTILITY
+============================================================ */
+.message {
+  margin-top: 8px;
+  min-height: 18px;
+}
+
+.hidden {
+  display: none;
+}

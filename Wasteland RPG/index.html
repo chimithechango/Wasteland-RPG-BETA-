@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Wasteland RPG</title>
+
+  <!-- FAVICON -->
+  <link rel="icon" type="image/png" href="favicon.png">
+
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div id="pipboy-frame">
+    <div id="pipboy-header">
+      <span class="header-left">WASTELAND RPG</span>
+      <span class="header-center">PIP-UNIT 3000</span>
+      <span class="header-right" id="header-time">00:00</span>
+    </div>
+
+    <div id="pipboy-main">
+      <div id="pipboy-sidebar">
+        <button class="tab-button active" data-tab="status">STATUS</button>
+        <button class="tab-button" data-tab="map">MAP</button>
+        <button class="tab-button" data-tab="inventory">INVENTORY</button>
+        <button class="tab-button" data-tab="combat">COMBAT</button>
+        <button class="tab-button" data-tab="log">LOG</button>
+        <button class="tab-button" data-tab="allies">ALLIES</button>
+      </div>
+
+      <div id="pipboy-content">
+
+        <!-- STATUS TAB -->
+        <div class="tab-content" id="tab-status">
+          <h1>STATUS</h1>
+
+          <button id="recruit-button" class="hidden">RECRUIT ALLY</button>
+          <p id="recruit-message" class="message"></p>
+
+          <div class="status-grid">
+            <div>
+              <p><span class="label">Name:</span> <span id="char-name"></span></p>
+              <p><span class="label">Level:</span> <span id="char-level"></span></p>
+              <p><span class="label">HP:</span> <span id="char-hp"></span></p>
+              <p><span class="label">Location:</span> <span id="char-location"></span></p>
+            </div>
+            <div>
+              <p><span class="label">STR:</span> <span id="stat-str"></span></p>
+              <p><span class="label">PER:</span> <span id="stat-per"></span></p>
+              <p><span class="label">END:</span> <span id="stat-end"></span></p>
+              <p><span class="label">LCK:</span> <span id="stat-lck"></span></p>
+            </div>
+          </div>
+        </div>
+
+        <!-- MAP TAB -->
+        <div class="tab-content hidden" id="tab-map">
+          <h1>MAP</h1>
+
+          <label for="state-select">STATE:</label>
+          <select id="state-select"></select>
+
+          <p>Choose a location:</p>
+          <div id="location-list"></div>
+
+          <button id="travel-button">TRAVEL</button>
+          <p id="map-message" class="message"></p>
+        </div>
+
+        <!-- INVENTORY TAB -->
+        <div class="tab-content hidden" id="tab-inventory">
+          <h1>INVENTORY</h1>
+          <div id="inventory-list"></div>
+          <div class="inventory-actions">
+            <button id="use-item-button">USE</button>
+            <button id="drop-item-button">DROP</button>
+          </div>
+          <p id="inventory-message" class="message"></p>
+        </div>
+
+        <!-- COMBAT TAB -->
+        <div class="tab-content hidden" id="tab-combat">
+          <h1>COMBAT</h1>
+          <p><span class="label">Enemy:</span> <span id="enemy-name"></span></p>
+          <p><span class="label">Enemy HP:</span> <span id="enemy-hp"></span></p>
+          <div class="combat-actions">
+            <button id="attack-button">ATTACK</button>
+            <button id="loot-button" disabled>LOOT</button>
+            <button id="flee-button">FLEE</button>
+          </div>
+          <p id="combat-message" class="message"></p>
+        </div>
+
+        <!-- LOG TAB -->
+        <div class="tab-content hidden" id="tab-log">
+          <h1>LOG</h1>
+          <div id="log-output"></div>
+        </div>
+
+        <!-- ALLIES TAB -->
+        <div class="tab-content hidden" id="tab-allies">
+          <h1>ALLIES</h1>
+          <div id="allies-list"></div>
+          <p class="message" id="allies-message"></p>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- UPDATED FOOTER WITH CAPS ICON -->
+    <div id="pipboy-footer">
+      <span>HP: <span id="footer-hp"></span></span>
+      <span>AP: <span id="footer-ap"></span></span>
+      <span>
+        <img src="caps_icon.png" alt="Caps" style="height: 30px; width: 30px; vertical-align:middle; margin-right:4px;">
+        <span id="footer-caps"></span>
+      </span>
+    </div>
+
+    <div id="scanlines"></div>
+  </div>
+
+  <script src="game.js"></script>
+</body>
+</html>
