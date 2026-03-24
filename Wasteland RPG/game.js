@@ -8,7 +8,7 @@
    - Rarity colors
    - Random ally availability
    - Ally cost display
-   - Ally limit (3)
+   - Ally limit scales with level
    - Rarity-based stat boosts
    - Dedicated ALLIES tab
    - Item quantities
@@ -18,6 +18,10 @@
    - Ally name combat messages (A1)
    - XP + Leveling system
    - LocalStorage integration
+   - Shops in certain locations
+   - Selling items + allies
+   - Crafting + scrap usage
+   - Faster enemy spawns + extra Stimpak chance
    ============================================================ */
 
 /* ---------------------------
@@ -132,6 +136,13 @@ const gameState = {
     capsFrenzyActive: false,
     capsFrenzyTimer: 0,
     currentLocationEvent: null
+  },
+
+  shop: {
+    active: false,
+    locationName: null,
+    items: [],
+    selectedShopItemId: null
   }
 };
 
@@ -145,6 +156,30 @@ const allyLocations = {
   "vegas": "Settler",
   "vault_33": "Lucy MacLean",
   "vault": "Vault Dweller"
+};
+
+/* ---------------------------
+   SHOP DATA
+--------------------------- */
+const locationShops = {
+  "Highway Town": [
+    { id: "shop_pistol", name: "9mm Pistol", type: "weapon", damage: 7, rarity: "Uncommon", price: 40 },
+    { id: "shop_stim", name: "Stimpak", type: "consumable", heal: 15, price: 15 },
+    { id: "shop_scrap", name: "Scrap", type: "misc", price: 5 }
+  ],
+  "Lucy’s Crossing": [
+    { id: "shop_leather", name: "Reinforced Leather Armor", type: "armor", hpBoost: 12, defense: 3, rarity: "Uncommon", price: 60 },
+    { id: "shop_stim2", name: "Stimpak", type: "consumable", heal: 15, price: 15 }
+  ],
+  "New Vegas Strip": [
+    { id: "shop_laser", name: "Laser Pistol", type: "weapon", damage: 10, rarity: "Rare", price: 120 },
+    { id: "shop_stim3", name: "Stimpak", type: "consumable", heal: 15, price: 20 },
+    { id: "shop_armor", name: "Combat Armor", type: "armor", hpBoost: 18, defense: 4, rarity: "Rare", price: 150 }
+  ],
+  "NCR Stronghold": [
+    { id: "shop_rifle", name: "Service Rifle", type: "weapon", damage: 9, rarity: "Uncommon", price: 80 },
+    { id: "shop_scrap2", name: "Scrap", type: "misc", price: 5 }
+  ]
 };
 
 /* ---------------------------
@@ -192,6 +227,100 @@ const alliesMessageEl = document.getElementById("allies-message");
 const logOutputEl = document.getElementById("log-output");
 const headerTimeEl = document.getElementById("header-time");
 
+/* Optional: inventory tab element for shop/crafting UI */
+const inventoryTabEl = document.getElementById("tab-inventory");
+
+/* ---------------------------
+   SHOP / CRAFTING UI ELEMENTS
+--------------------------- */
+let shopPanel = null;
+let shopListEl = null;
+let shopMessageEl = null;
+let shopCloseButton = null;
+let shopSellButton = null;
+let craftPanel = null;
+let craftScrapButton = null;
+let craftDismantleButton = null;
+
+function initShopAndCraftUI() {
+  if (!inventoryTabEl) return;
+
+  // Shop panel
+  shopPanel = document.createElement("div");
+  shopPanel.id = "shop-panel";
+  shopPanel.style.borderTop = "1px solid #555";
+  shopPanel.style.marginTop = "8px";
+  shopPanel.style.paddingTop = "8px";
+
+  const shopTitle = document.createElement("h3");
+  shopTitle.textContent = "Shop";
+  shopPanel.appendChild(shopTitle);
+
+  shopListEl = document.createElement("div");
+  shopListEl.id = "shop-list";
+  shopPanel.appendChild(shopListEl);
+
+  shopMessageEl = document.createElement("p");
+  shopMessageEl.id = "shop-message";
+  shopPanel.appendChild(shopMessageEl);
+
+  const shopButtonsRow = document.createElement("div");
+  shopButtonsRow.style.marginTop = "4px";
+
+  shopCloseButton = document.createElement("button");
+  shopCloseButton.textContent = "Close Shop";
+  shopCloseButton.addEventListener("click", () => {
+    gameState.shop.active = false;
+    gameState.shop.items = [];
+    gameState.shop.locationName = null;
+    shopPanel.style.display = "none";
+    shopMessageEl.textContent = "";
+    saveGame();
+  });
+  shopButtonsRow.appendChild(shopCloseButton);
+
+  shopSellButton = document.createElement("button");
+  shopSellButton.textContent = "Sell Selected Item";
+  shopSellButton.style.marginLeft = "6px";
+  shopSellButton.addEventListener("click", () => {
+    sellSelectedInventoryItem();
+  });
+  shopButtonsRow.appendChild(shopSellButton);
+
+  shopPanel.appendChild(shopButtonsRow);
+
+  // Crafting panel
+  craftPanel = document.createElement("div");
+  craftPanel.id = "craft-panel";
+  craftPanel.style.borderTop = "1px solid #555";
+  craftPanel.style.marginTop = "8px";
+  craftPanel.style.paddingTop = "8px";
+
+  const craftTitle = document.createElement("h3");
+  craftTitle.textContent = "Crafting";
+  craftPanel.appendChild(craftTitle);
+
+  craftScrapButton = document.createElement("button");
+  craftScrapButton.textContent = "Craft Stimpak (3 Scrap)";
+  craftScrapButton.addEventListener("click", () => {
+    craftStimpakFromScrap();
+  });
+  craftPanel.appendChild(craftScrapButton);
+
+  craftDismantleButton = document.createElement("button");
+  craftDismantleButton.textContent = "Scrap Selected Gear";
+  craftDismantleButton.style.marginLeft = "6px";
+  craftDismantleButton.addEventListener("click", () => {
+    scrapSelectedGear();
+  });
+  craftPanel.appendChild(craftDismantleButton);
+
+  inventoryTabEl.appendChild(shopPanel);
+  inventoryTabEl.appendChild(craftPanel);
+
+  shopPanel.style.display = "none";
+}
+
 /* ---------------------------
    TAB SWITCHING
 --------------------------- */
@@ -213,6 +342,11 @@ tabButtons.forEach((btn) => {
 /* ---------------------------
    RENDER FUNCTIONS
 --------------------------- */
+function getMaxAllies() {
+  // Every level = +1 ally slot, starting at 1
+  return 1 + gameState.player.level;
+}
+
 function renderStatus() {
   const p = gameState.player;
   charNameEl.textContent = p.name;
@@ -228,6 +362,11 @@ function renderStatus() {
   footerHpEl.textContent = `${p.hp}/${p.maxHp}`;
   footerApEl.textContent = p.ap;
   footerCapsEl.textContent = p.caps;
+
+  // Allies tab info
+  if (alliesMessageEl) {
+    alliesMessageEl.textContent = `Allies: ${gameState.player.allies.length}/${getMaxAllies()}`;
+  }
 }
 
 function renderStateDropdown() {
@@ -329,20 +468,40 @@ function renderAlliesTab() {
     return;
   }
 
-  gameState.player.allies.forEach((ally) => {
+  gameState.player.allies.forEach((ally, index) => {
     const div = document.createElement("div");
     div.classList.add("ally-entry");
 
+    const color = RARITY_COLORS[ally.rarity] || "#fff";
+
     div.innerHTML = `
       <p>
-        <strong style="color:${RARITY_COLORS[ally.rarity]}">${ally.name}</strong>
-        <span style="color:${RARITY_COLORS[ally.rarity]}">(${ally.rarity})</span>
+        <strong style="color:${color}">${ally.name}</strong>
+        <span style="color:${color}">(${ally.rarity})</span>
       </p>
       <p>Damage: ${ally.damage} | HP: ${ally.hp}</p>
     `;
 
+    // Sell ally button
+    const sellBtn = document.createElement("button");
+    sellBtn.textContent = "Dismiss/Sell Ally";
+    sellBtn.addEventListener("click", () => {
+      const refund = Math.floor((ally.cost || 50) * 0.5);
+      gameState.player.caps += refund;
+      log(`You dismissed ${ally.name} and received ${refund} caps.`);
+      gameState.player.allies.splice(index, 1);
+      renderAlliesTab();
+      renderStatus();
+      saveGame();
+    });
+    div.appendChild(sellBtn);
+
     alliesListEl.appendChild(div);
   });
+
+  if (alliesMessageEl) {
+    alliesMessageEl.textContent = `Allies: ${gameState.player.allies.length}/${getMaxAllies()}`;
+  }
 }
 
 /* ---------------------------
@@ -391,8 +550,9 @@ recruitButton.addEventListener("click", () => {
 
   if (!ally) return;
 
-  if (gameState.player.allies.length >= 3) {
-    recruitMessageEl.textContent = "You already have 3 allies!";
+  const maxAllies = getMaxAllies();
+  if (gameState.player.allies.length >= maxAllies) {
+    recruitMessageEl.textContent = `You already have the maximum allies (${maxAllies}). Level up for more slots.`;
     return;
   }
 
@@ -476,6 +636,93 @@ function spawnAlienEncounter() {
   renderEnemy();
 }
 
+/* ---------------------------
+   SHOP OPENING
+--------------------------- */
+function maybeOpenShop(location) {
+  const shopItems = locationShops[location.name];
+  if (!shopItems) {
+    if (shopPanel) {
+      shopPanel.style.display = "none";
+    }
+    gameState.shop.active = false;
+    gameState.shop.items = [];
+    gameState.shop.locationName = null;
+    return;
+  }
+
+  // 50% chance to have a shop active when you arrive
+  if (Math.random() < 0.5) {
+    gameState.shop.active = true;
+    gameState.shop.locationName = location.name;
+    // clone items so we don't mutate base data
+    gameState.shop.items = shopItems.map(item => ({ ...item }));
+    renderShop();
+    log(`A trader sets up shop in ${location.name}.`);
+  } else {
+    if (shopPanel) {
+      shopPanel.style.display = "none";
+    }
+    gameState.shop.active = false;
+    gameState.shop.items = [];
+    gameState.shop.locationName = null;
+  }
+}
+
+function renderShop() {
+  if (!shopPanel || !shopListEl) return;
+
+  if (!gameState.shop.active) {
+    shopPanel.style.display = "none";
+    return;
+  }
+
+  shopPanel.style.display = "block";
+  shopListEl.innerHTML = "";
+
+  const title = `Shop at ${gameState.shop.locationName}`;
+  shopPanel.querySelector("h3").textContent = title;
+
+  gameState.shop.items.forEach((item) => {
+    const row = document.createElement("div");
+    row.classList.add("shop-item");
+    row.dataset.id = item.id;
+
+    const rarityText = item.rarity ? ` (${item.rarity})` : "";
+    const color = item.rarity ? (RARITY_COLORS[item.rarity] || "#fff") : "#fff";
+
+    row.innerHTML = `
+      <span style="color:${color}">${item.name}${rarityText}</span>
+      <span>${item.price} caps</span>
+    `;
+
+    row.addEventListener("click", () => {
+      gameState.shop.selectedShopItemId = item.id;
+      renderShop();
+    });
+
+    if (gameState.shop.selectedShopItemId === item.id) {
+      row.style.backgroundColor = "rgba(255,255,255,0.1)";
+    }
+
+    const buyBtn = document.createElement("button");
+    buyBtn.textContent = "Buy";
+    buyBtn.style.marginLeft = "6px";
+    buyBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      buyShopItem(item.id);
+    });
+    row.appendChild(buyBtn);
+
+    shopListEl.appendChild(row);
+  });
+
+  shopMessageEl.textContent = "Click an item to select it, then Buy or sell your own items.";
+}
+
+/* ---------------------------
+   TRAVEL BUTTON
+--------------------------- */
 travelButton.addEventListener("click", () => {
   SFX.travel.play();
 
@@ -490,23 +737,25 @@ travelButton.addEventListener("click", () => {
 
   maybeTriggerLocationEvent(loc);
   maybeSpawnEnemy(loc);
+  maybeOpenShop(loc);
   renderStatus();
   renderEnemy();
+  renderShop();
   updateRecruitButton();
   saveGame();
 });
 
 /* ---------------------------
-   RANDOM ENCOUNTERS
+   RANDOM ENCOUNTERS (FASTER)
 --------------------------- */
 setInterval(() => {
-  if (Math.random() < 0.15 && !gameState.enemy) {
+  if (Math.random() < 0.25 && !gameState.enemy) {
     const locs = gameState.states[gameState.player.state];
     const loc = locs.find((l) => l.name === gameState.player.location);
     maybeSpawnEnemy(loc);
     renderEnemy();
   }
-}, 6000);
+}, 3000);
 
 /* ---------------------------
    ENEMY SPAWNING
@@ -552,7 +801,7 @@ function maybeSpawnEnemy(location) {
   }
 
   const roll = Math.random();
-  let threshold = location.danger === "Low" ? 0.3 : location.danger === "Medium" ? 0.6 : 0.9;
+  let threshold = location.danger === "Low" ? 0.5 : location.danger === "Medium" ? 0.8 : 0.95;
 
   if (roll < threshold) {
     gameState.enemy = createEnemyForLocation(location);
@@ -680,7 +929,7 @@ attackButton.addEventListener("click", () => {
   if (enemy.hp < 0) enemy.hp = 0;
 
   /* ---------------------------
-     ENEMY DEFEATED — XP + CAPS
+     ENEMY DEFEATED — XP + CAPS + BONUS STIMPAK
   --------------------------- */
   if (enemy.hp <= 0) {
     enemy.defeated = true;
@@ -696,8 +945,25 @@ attackButton.addEventListener("click", () => {
     log(`Enemy dropped ${caps} caps.`);
     combatMessageEl.textContent = `You defeated the ${enemy.name} and gained ${caps} caps!`;
 
+    // EXTRA 25% CHANCE FOR BONUS STIMPAK
+    if (Math.random() < 0.25) {
+      const stim = gameState.player.inventory.find(i => i.name === "Stimpak" && i.type === "consumable");
+      if (stim) stim.quantity++;
+      else {
+        gameState.player.inventory.push({
+          id: Date.now() + 999,
+          name: "Stimpak",
+          type: "consumable",
+          heal: 15,
+          quantity: 1
+        });
+      }
+      log("You found an extra Stimpak on the corpse.");
+    }
+
     lootButton.disabled = false;
     renderStatus();
+    renderInventory();
     renderEnemy();
     saveGame();
     return;
@@ -793,7 +1059,6 @@ fleeButton.addEventListener("click", () => {
   const enemy = gameState.enemy;
   if (!enemy) return;
 
-  // NEW: If enemy is dead, fleeing always succeeds
   if (enemy.defeated) {
     combatMessageEl.textContent = "You leave the corpse behind.";
     log(`Left the remains of ${enemy.name}.`);
@@ -930,6 +1195,215 @@ dropItemButton.addEventListener("click", () => {
   renderInventory();
   saveGame();
 });
+
+/* ---------------------------
+   SHOP BUY / SELL HELPERS
+--------------------------- */
+function buyShopItem(shopItemId) {
+  const item = gameState.shop.items.find(i => i.id === shopItemId);
+  if (!item) return;
+
+  if (gameState.player.caps < item.price) {
+    if (shopMessageEl) shopMessageEl.textContent = "Not enough caps.";
+    log("Tried to buy but not enough caps.");
+    return;
+  }
+
+  gameState.player.caps -= item.price;
+
+  const newItem = {
+    id: Date.now() + Math.floor(Math.random() * 1000),
+    name: item.name,
+    type: item.type,
+    quantity: 1
+  };
+
+  if (item.type === "weapon") {
+    newItem.damage = item.damage;
+    newItem.rarity = item.rarity || "Common";
+    newItem.equipped = false;
+  } else if (item.type === "armor") {
+    newItem.hpBoost = item.hpBoost;
+    newItem.defense = item.defense || 0;
+    newItem.rarity = item.rarity || "Common";
+    newItem.equipped = false;
+  } else if (item.type === "consumable") {
+    newItem.heal = item.heal || 10;
+  }
+
+  const existing = gameState.player.inventory.find(
+    i => i.name === newItem.name && i.type === newItem.type
+  );
+  if (existing) {
+    existing.quantity = (existing.quantity || 1) + 1;
+  } else {
+    gameState.player.inventory.push(newItem);
+  }
+
+  if (shopMessageEl) shopMessageEl.textContent = `Bought ${item.name}.`;
+  log(`Bought ${item.name} for ${item.price} caps.`);
+
+  renderStatus();
+  renderInventory();
+  saveGame();
+}
+
+function getItemSellValue(item) {
+  let base = 5;
+  if (item.type === "weapon") {
+    base = (item.damage || 5) * 3;
+  } else if (item.type === "armor") {
+    base = ((item.hpBoost || 5) + (item.defense || 0) * 2) * 2;
+  } else if (item.type === "consumable") {
+    base = 10;
+  } else if (item.type === "misc") {
+    base = 5;
+  }
+
+  const rarityMult = {
+    "Common": 1,
+    "Uncommon": 1.3,
+    "Rare": 1.7,
+    "Legendary": 2.5
+  };
+  const mult = rarityMult[item.rarity] || 1;
+  return Math.max(1, Math.floor(base * mult * 0.5));
+}
+
+function sellSelectedInventoryItem() {
+  const id = gameState.selectedInventoryItemId;
+  if (!id) {
+    if (shopMessageEl) shopMessageEl.textContent = "Select an item in your inventory to sell.";
+    return;
+  }
+
+  const idx = gameState.player.inventory.findIndex((i) => i.id === id);
+  const item = gameState.player.inventory[idx];
+  if (!item) return;
+
+  if (item.equipped) {
+    if (shopMessageEl) shopMessageEl.textContent = "Unequip item before selling.";
+    return;
+  }
+
+  const value = getItemSellValue(item);
+  gameState.player.caps += value;
+
+  item.quantity--;
+  if (item.quantity <= 0) {
+    gameState.player.inventory.splice(idx, 1);
+  }
+
+  if (shopMessageEl) shopMessageEl.textContent = `Sold ${item.name} for ${value} caps.`;
+  log(`Sold ${item.name} for ${value} caps.`);
+
+  gameState.selectedInventoryItemId = null;
+  renderInventory();
+  renderStatus();
+  saveGame();
+}
+
+/* ---------------------------
+   CRAFTING HELPERS
+--------------------------- */
+function countScrap() {
+  const scrap = gameState.player.inventory.find(
+    i => i.name === "Scrap" && i.type === "misc"
+  );
+  return scrap ? (scrap.quantity || 1) : 0;
+}
+
+function removeScrap(amount) {
+  const scrap = gameState.player.inventory.find(
+    i => i.name === "Scrap" && i.type === "misc"
+  );
+  if (!scrap) return;
+
+  scrap.quantity -= amount;
+  if (scrap.quantity <= 0) {
+    const idx = gameState.player.inventory.indexOf(scrap);
+    if (idx >= 0) gameState.player.inventory.splice(idx, 1);
+  }
+}
+
+function craftStimpakFromScrap() {
+  const needed = 3;
+  const have = countScrap();
+  if (have < needed) {
+    inventoryMessageEl.textContent = `Not enough Scrap. Need ${needed}, have ${have}.`;
+    log("Crafting failed: not enough Scrap.");
+    return;
+  }
+
+  removeScrap(needed);
+
+  const existingStim = gameState.player.inventory.find(
+    i => i.name === "Stimpak" && i.type === "consumable"
+  );
+  if (existingStim) {
+    existingStim.quantity = (existingStim.quantity || 1) + 1;
+  } else {
+    gameState.player.inventory.push({
+      id: Date.now() + 5000,
+      name: "Stimpak",
+      type: "consumable",
+      heal: 15,
+      quantity: 1
+    });
+  }
+
+  inventoryMessageEl.textContent = "Crafted 1 Stimpak from Scrap.";
+  log("Crafted 1 Stimpak from Scrap.");
+  renderInventory();
+  saveGame();
+}
+
+function scrapSelectedGear() {
+  const id = gameState.selectedInventoryItemId;
+  if (!id) {
+    inventoryMessageEl.textContent = "Select gear to scrap.";
+    return;
+  }
+
+  const idx = gameState.player.inventory.findIndex((i) => i.id === id);
+  const item = gameState.player.inventory[idx];
+  if (!item) return;
+
+  if (item.type !== "weapon" && item.type !== "armor") {
+    inventoryMessageEl.textContent = "Only weapons and armor can be scrapped.";
+    return;
+  }
+
+  if (item.equipped) {
+    inventoryMessageEl.textContent = "Unequip gear before scrapping.";
+    return;
+  }
+
+  item.quantity--;
+  if (item.quantity <= 0) {
+    gameState.player.inventory.splice(idx, 1);
+  }
+
+  const scrap = gameState.player.inventory.find(
+    i => i.name === "Scrap" && i.type === "misc"
+  );
+  if (scrap) {
+    scrap.quantity = (scrap.quantity || 1) + 2;
+  } else {
+    gameState.player.inventory.push({
+      id: Date.now() + 6000,
+      name: "Scrap",
+      type: "misc",
+      quantity: 2
+    });
+  }
+
+  inventoryMessageEl.textContent = `Scrapped ${item.name} into Scrap.`;
+  log(`Scrapped ${item.name} into Scrap.`);
+  gameState.selectedInventoryItemId = null;
+  renderInventory();
+  saveGame();
+}
 /* ---------------------------
    CAPS FRENZY GLOBAL EVENT
 --------------------------- */
@@ -973,7 +1447,11 @@ function saveGame() {
     player: gameState.player,
     selectedState: gameState.selectedState,
     selectedLocationId: gameState.selectedLocationId,
-    events: gameState.events
+    events: gameState.events,
+    shop: {
+      active: gameState.shop.active,
+      locationName: gameState.shop.locationName
+    }
   };
 
   try {
@@ -995,6 +1473,17 @@ function loadGame() {
     if (saved.selectedLocationId) gameState.selectedLocationId = saved.selectedLocationId;
     if (saved.events) Object.assign(gameState.events, saved.events);
 
+    if (saved.shop) {
+      gameState.shop.active = saved.shop.active || false;
+      gameState.shop.locationName = saved.shop.locationName || null;
+
+      if (gameState.shop.locationName) {
+        const locName = gameState.shop.locationName;
+        const baseItems = locationShops[locName] || [];
+        gameState.shop.items = baseItems.map(i => ({ ...i }));
+      }
+    }
+
     log("Loaded saved game.");
   } catch (e) {
     console.error("Save corrupted:", e);
@@ -1011,11 +1500,13 @@ setInterval(() => {
 /* ---------------------------
    INITIAL RENDER
 --------------------------- */
+initShopAndCraftUI();
 loadGame();
 renderStatus();
 renderStateDropdown();
 renderLocations();
 renderInventory();
 renderEnemy();
+renderShop();
 updateRecruitButton();
 log("Welcome to Wasteland RPG — the wastes grow larger every day.");
