@@ -783,7 +783,7 @@ function maybeSpawnEnemy(location) {
   }
 
   // Mothman rare spawn
-  if (isWestVirginia && Math.random() < 1 / 100) {
+  if (isWestVirginia && Math.random() < 1 / 40) {
     gameState.enemy = {
       name: "Mothman",
       hp: 250,
