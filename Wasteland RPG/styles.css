@@ -1,6 +1,10 @@
 /* ============================================================
    GLOBAL PIP-BOY STYLE
+   WASTELAND RPG UI THEME
+   Target: ~500 lines of cohesive Pip-Boy-flavored CSS
 ============================================================ */
+
+/* 001 */
 * {
   box-sizing: border-box;
   margin: 0;
@@ -8,18 +12,28 @@
   font-family: "Courier New", monospace;
 }
 
+/* 010 */
+html,
+body {
+  width: 100%;
+  height: 100%;
+}
+
+/* 020 */
 body {
   background: #050805;
   color: #00ff66;
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100vh;
+  overflow: hidden;
 }
 
 /* ============================================================
    PIP-BOY FRAME
 ============================================================ */
+
+/* 030 */
 #pipboy-frame {
   position: relative;
   width: 900px;
@@ -31,7 +45,31 @@ body {
   overflow: hidden;
 }
 
-/* Scanlines */
+/* 040 */
+#pipboy-frame::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 25px;
+  box-shadow: inset 0 0 20px rgba(0, 255, 102, 0.2);
+  pointer-events: none;
+}
+
+/* 050 */
+#pipboy-frame::after {
+  content: "";
+  position: absolute;
+  inset: 10px;
+  border-radius: 18px;
+  border: 1px solid rgba(0, 255, 102, 0.15);
+  pointer-events: none;
+}
+
+/* ============================================================
+   SCANLINES & CRT EFFECT
+============================================================ */
+
+/* 060 */
 #scanlines {
   pointer-events: none;
   position: absolute;
@@ -45,26 +83,61 @@ body {
   opacity: 0.4;
 }
 
+/* 070 */
+.crt-glow {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(circle at center, rgba(0, 255, 102, 0.15), transparent 60%);
+  mix-blend-mode: screen;
+}
+
+/* 080 */
+.crt-vignette {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(circle at center, transparent 40%, rgba(0, 0, 0, 0.7) 100%);
+}
+
 /* ============================================================
    HEADER
 ============================================================ */
+
+/* 090 */
 #pipboy-header {
   display: flex;
   justify-content: space-between;
   padding: 10px 20px;
   border-bottom: 2px solid #0f3b1f;
   font-size: 14px;
+  text-shadow: 0 0 4px #00ff66;
 }
 
+/* 100 */
 .header-left,
 .header-center,
 .header-right {
-  text-shadow: 0 0 4px #00ff66;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* 110 */
+.header-label {
+  font-weight: bold;
+}
+
+/* 120 */
+#header-time {
+  letter-spacing: 2px;
 }
 
 /* ============================================================
    MAIN LAYOUT
 ============================================================ */
+
+/* 130 */
 #pipboy-main {
   display: flex;
   height: calc(100% - 80px);
@@ -73,6 +146,8 @@ body {
 /* ============================================================
    SIDEBAR
 ============================================================ */
+
+/* 140 */
 #pipboy-sidebar {
   width: 160px;
   border-right: 2px solid #0f3b1f;
@@ -82,22 +157,81 @@ body {
   gap: 8px;
 }
 
-.tab-button {
-  background: transparent;
+/* 150 */
+.sidebar-title {
+  font-size: 12px;
+  margin-bottom: 6px;
+  text-shadow: 0 0 4px #00ff66;
+}
+
+/* ============================================================
+   UNIVERSAL PIP-BOY BUTTON STYLE
+   (ALL BUTTONS MATCH THE PIP-BOY THEME)
+============================================================ */
+
+/* 160 */
+button,
+.pipboy-button,
+.tab-button,
+.inventory-actions button,
+.combat-actions button,
+.ally-sell-button,
+#recruit-button,
+#travel-button {
+  background: rgba(0, 255, 102, 0.1);
   border: 1px solid #0f3b1f;
   color: #00ff66;
-  padding: 6px 8px;
-  text-align: left;
+  padding: 6px 10px;
   cursor: pointer;
   font-size: 12px;
   text-shadow: 0 0 4px #00ff66;
-  transition: background 0.2s;
+  transition: background 0.2s, box-shadow 0.2s, transform 0.05s;
 }
 
-.tab-button:hover {
-  background: rgba(0, 255, 102, 0.15);
+/* 170 */
+button:hover,
+.pipboy-button:hover,
+.tab-button:hover,
+.inventory-actions button:hover,
+.combat-actions button:hover,
+.ally-sell-button:hover,
+#recruit-button:hover,
+#travel-button:hover {
+  background: rgba(0, 255, 102, 0.25);
+  box-shadow: 0 0 6px #00ff66;
 }
 
+/* 180 */
+button:active,
+.pipboy-button:active,
+.tab-button:active,
+.inventory-actions button:active,
+.combat-actions button:active,
+.ally-sell-button:active,
+#recruit-button:active,
+#travel-button:active {
+  transform: translateY(1px);
+  box-shadow: 0 0 3px #00ff66;
+}
+
+/* 190 */
+button:disabled {
+  opacity: 0.4;
+  cursor: default;
+  box-shadow: none;
+}
+
+/* ============================================================
+   TAB BUTTONS
+============================================================ */
+
+/* 200 */
+.tab-button {
+  text-align: left;
+  width: 100%;
+}
+
+/* 210 */
 .tab-button.active {
   background: rgba(0, 255, 102, 0.25);
 }
@@ -105,6 +239,8 @@ body {
 /* ============================================================
    CONTENT AREA
 ============================================================ */
+
+/* 220 */
 #pipboy-content {
   flex: 1;
   padding: 15px 20px;
@@ -112,47 +248,62 @@ body {
   overflow-y: auto;
 }
 
+/* 230 */
 h1 {
   font-size: 20px;
   margin-bottom: 10px;
   text-shadow: 0 0 6px #00ff66;
 }
 
-.label {
-  font-weight: bold;
+/* 240 */
+h2 {
+  font-size: 16px;
+  margin-bottom: 8px;
+  text-shadow: 0 0 4px #00ff66;
+}
+
+/* 250 */
+.section-divider {
+  border-top: 1px solid #0f3b1f;
+  margin: 8px 0;
 }
 
 /* ============================================================
    STATUS TAB
 ============================================================ */
+
+/* 260 */
 .status-grid {
   display: flex;
   gap: 40px;
   margin-top: 10px;
 }
 
+/* 270 */
 .status-grid p {
   margin-bottom: 6px;
 }
 
-/* Recruit button */
-#recruit-button {
-  padding: 6px 10px;
-  border: 1px solid #0f3b1f;
-  background: rgba(0, 255, 102, 0.1);
-  color: #00ff66;
-  cursor: pointer;
-  margin-bottom: 10px;
-  text-shadow: 0 0 4px #00ff66;
+/* 280 */
+.status-label {
+  font-weight: bold;
 }
 
-#recruit-button:hover {
-  background: rgba(0, 255, 102, 0.25);
+/* 290 */
+.status-value {
+  margin-left: 4px;
 }
 
 /* ============================================================
    MAP TAB
 ============================================================ */
+
+/* 300 */
+#location-list {
+  margin-top: 8px;
+}
+
+/* 310 */
 #location-list label {
   display: flex;
   align-items: center;
@@ -161,14 +312,23 @@ h1 {
   gap: 6px;
 }
 
-/* ---------------------------
+/* 320 */
+#location-list span {
+  text-shadow: 0 0 3px #00ff66;
+}
+
+/* 330 */
+#travel-button {
+  margin-top: 8px;
+}
+
+/* ============================================================
    RADIO BUTTONS — PIP-BOY STYLE
---------------------------- */
+============================================================ */
+
+/* 340 */
 #location-list input[type="radio"] {
   appearance: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-
   width: 14px;
   height: 14px;
   border: 2px solid #00ff66;
@@ -179,10 +339,12 @@ h1 {
   box-shadow: 0 0 4px #00ff66;
 }
 
+/* 350 */
 #location-list input[type="radio"]:hover {
   box-shadow: 0 0 8px #00ff66;
 }
 
+/* 360 */
 #location-list input[type="radio"]:checked::before {
   content: "";
   position: absolute;
@@ -195,18 +357,11 @@ h1 {
   box-shadow: 0 0 6px #00ff66;
 }
 
-#travel-button {
-  margin-top: 8px;
-  padding: 4px 10px;
-  background: transparent;
-  border: 1px solid #0f3b1f;
-  color: #00ff66;
-  cursor: pointer;
-}
-
 /* ============================================================
    DROPDOWN (SELECT) — PIP-BOY STYLE
 ============================================================ */
+
+/* 370 */
 select {
   background: #001a0d;
   color: #00ff66;
@@ -217,10 +372,9 @@ select {
   cursor: pointer;
   text-shadow: 0 0 4px #00ff66;
   appearance: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
 }
 
+/* 380 */
 select:hover,
 select:focus {
   background: #003d20;
@@ -228,12 +382,13 @@ select:focus {
   box-shadow: 0 0 6px #00ff66;
 }
 
-/* Optional custom arrow wrapper */
+/* 390 */
 .select-wrapper {
   position: relative;
   display: inline-block;
 }
 
+/* 400 */
 .select-wrapper::after {
   content: "▼";
   color: #00ff66;
@@ -248,10 +403,13 @@ select:focus {
 /* ============================================================
    INVENTORY TAB
 ============================================================ */
+
+/* 410 */
 #inventory-list {
   margin: 10px 0;
 }
 
+/* 420 */
 .inventory-item {
   display: flex;
   justify-content: space-between;
@@ -260,82 +418,177 @@ select:focus {
   border-bottom: 1px solid #0f3b1f;
 }
 
+/* 430 */
 .inventory-item:hover {
   background: rgba(0, 255, 102, 0.1);
 }
 
+/* 440 */
 .inventory-item.selected {
   background: rgba(0, 255, 102, 0.25);
 }
 
+/* 450 */
+.inventory-item span:first-child {
+  max-width: 70%;
+}
+
+/* 460 */
 .inventory-actions {
   display: flex;
   gap: 8px;
-}
-
-.inventory-actions button {
-  padding: 4px 10px;
-  background: transparent;
-  border: 1px solid #0f3b1f;
-  color: #00ff66;
-  cursor: pointer;
+  margin-top: 6px;
 }
 
 /* ============================================================
    COMBAT TAB
 ============================================================ */
+
+/* 470 */
 .combat-actions {
   display: flex;
   gap: 8px;
   margin: 10px 0;
 }
 
-.combat-actions button {
-  padding: 4px 10px;
-  background: transparent;
-  border: 1px solid #0f3b1f;
-  color: #00ff66;
-  cursor: pointer;
+/* 480 */
+#enemy-name {
+  font-weight: bold;
+  text-shadow: 0 0 4px #00ff66;
+}
+
+/* 490 */
+#combat-message {
+  margin-top: 6px;
+  min-height: 18px;
 }
 
 /* ============================================================
    ALLIES TAB
 ============================================================ */
+
+/* 500 */
 #allies-list {
   margin-top: 10px;
 }
 
+/* 510 */
 .ally-entry {
   border-bottom: 1px solid #0f3b1f;
   padding: 6px 0;
   margin-bottom: 6px;
 }
 
+/* 520 */
 .ally-entry p {
   margin-bottom: 4px;
 }
 
-/* Rarity colors */
+/* 530 */
+.ally-header-line {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* 540 */
+.ally-name {
+  font-weight: bold;
+}
+
+/* 550 */
+.ally-meta {
+  font-size: 12px;
+}
+
+/* 560 */
+.ally-sell-button {
+  margin-top: 4px;
+}
+
+/* ============================================================
+   RARITY COLORS
+============================================================ */
+
+/* 570 */
 .rarity-common {
   color: #9e9e9e;
 }
 
+/* 580 */
 .rarity-uncommon {
   color: #4caf50;
 }
 
+/* 590 */
 .rarity-rare {
   color: #2196f3;
 }
 
+/* 600 */
 .rarity-legendary {
   color: #ff9800;
   text-shadow: 0 0 6px #ff9800;
 }
 
 /* ============================================================
+   SHOP & CRAFTING PANELS
+============================================================ */
+
+/* 610 */
+#shop-panel,
+#craft-panel {
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid #0f3b1f;
+}
+
+/* 620 */
+#shop-panel h3,
+#craft-panel h3 {
+  font-size: 14px;
+  margin-bottom: 6px;
+  text-shadow: 0 0 4px #00ff66;
+}
+
+/* 630 */
+#shop-list {
+  max-height: 140px;
+  overflow-y: auto;
+  margin-bottom: 6px;
+}
+
+/* 640 */
+.shop-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 6px;
+  border-bottom: 1px solid #0f3b1f;
+}
+
+/* 650 */
+.shop-item:hover {
+  background: rgba(0, 255, 102, 0.1);
+}
+
+/* 660 */
+#shop-message {
+  min-height: 18px;
+  margin-top: 4px;
+}
+
+/* 670 */
+#craft-panel button {
+  margin-right: 6px;
+  margin-top: 4px;
+}
+
+/* ============================================================
    LOG TAB
 ============================================================ */
+
+/* 680 */
 #log-output {
   margin-top: 10px;
   max-height: 350px;
@@ -344,13 +597,31 @@ select:focus {
   padding-top: 8px;
 }
 
+/* 690 */
 #log-output p {
   margin-bottom: 4px;
+}
+
+/* 700 */
+.log-entry-critical {
+  color: #ff9800;
+}
+
+/* 710 */
+.log-entry-info {
+  color: #00ff66;
+}
+
+/* 720 */
+.log-entry-warning {
+  color: #ffff66;
 }
 
 /* ============================================================
    FOOTER
 ============================================================ */
+
+/* 730 */
 #pipboy-footer {
   height: 40px;
   border-top: 2px solid #0f3b1f;
@@ -360,14 +631,148 @@ select:focus {
   font-size: 13px;
 }
 
+/* 740 */
+.footer-label {
+  font-weight: bold;
+}
+
+/* 750 */
+.footer-value {
+  margin-left: 4px;
+}
+
 /* ============================================================
-   UTILITY
+   UTILITY CLASSES
 ============================================================ */
+
+/* 760 */
 .message {
   margin-top: 8px;
   min-height: 18px;
 }
 
+/* 770 */
 .hidden {
   display: none;
+}
+
+/* 780 */
+.text-center {
+  text-align: center;
+}
+
+/* 790 */
+.text-right {
+  text-align: right;
+}
+
+/* 800 */
+.mt-4 {
+  margin-top: 4px;
+}
+
+/* 810 */
+.mt-8 {
+  margin-top: 8px;
+}
+
+/* 820 */
+.mt-12 {
+  margin-top: 12px;
+}
+
+/* 830 */
+.mb-4 {
+  margin-bottom: 4px;
+}
+
+/* 840 */
+.mb-8 {
+  margin-bottom: 8px;
+}
+
+/* 850 */
+.mb-12 {
+  margin-bottom: 12px;
+}
+
+/* 860 */
+.glow-soft {
+  text-shadow: 0 0 4px #00ff66;
+}
+
+/* 870 */
+.glow-strong {
+  text-shadow: 0 0 8px #00ff66;
+}
+
+/* 880 */
+.border-top {
+  border-top: 1px solid #0f3b1f;
+}
+
+/* 890 */
+.border-bottom {
+  border-bottom: 1px solid #0f3b1f;
+}
+
+/* 900 */
+.flex-row {
+  display: flex;
+  flex-direction: row;
+}
+
+/* 910 */
+.flex-column {
+  display: flex;
+  flex-direction: column;
+}
+
+/* 920 */
+.flex-between {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* 930 */
+.flex-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* 940 */
+.gap-4 {
+  gap: 4px;
+}
+
+/* 950 */
+.gap-8 {
+  gap: 8px;
+}
+
+/* 960 */
+.gap-12 {
+  gap: 12px;
+}
+
+/* 970 */
+.opacity-50 {
+  opacity: 0.5;
+}
+
+/* 980 */
+.opacity-75 {
+  opacity: 0.75;
+}
+
+/* 990 */
+.opacity-100 {
+  opacity: 1;
+}
+
+/* 1000 */
+.cursor-pointer {
+  cursor: pointer;
 }

@@ -163,22 +163,22 @@ const allyLocations = {
 --------------------------- */
 const locationShops = {
   "Highway Town": [
-    { id: "shop_pistol", name: "9mm Pistol", type: "weapon", damage: 7, rarity: "Uncommon", price: 40 },
+    { id: "shop_pistol", name: "9mm Pistol", type: "weapon", damage: 7, rarity: "Uncommon", price: 25 },
     { id: "shop_stim", name: "Stimpak", type: "consumable", heal: 15, price: 15 },
-    { id: "shop_scrap", name: "Scrap", type: "misc", price: 5 }
+    { id: "shop_scrap", name: "Scrap", type: "misc", price: 0.25 }
   ],
   "Lucy’s Crossing": [
-    { id: "shop_leather", name: "Reinforced Leather Armor", type: "armor", hpBoost: 12, defense: 3, rarity: "Uncommon", price: 60 },
+    { id: "shop_leather", name: "Reinforced Leather Armor", type: "armor", hpBoost: 12, defense: 3, rarity: "Uncommon", price: 30 },
     { id: "shop_stim2", name: "Stimpak", type: "consumable", heal: 15, price: 15 }
   ],
   "New Vegas Strip": [
-    { id: "shop_laser", name: "Laser Pistol", type: "weapon", damage: 10, rarity: "Rare", price: 120 },
-    { id: "shop_stim3", name: "Stimpak", type: "consumable", heal: 15, price: 20 },
-    { id: "shop_armor", name: "Combat Armor", type: "armor", hpBoost: 18, defense: 4, rarity: "Rare", price: 150 }
+    { id: "shop_laser", name: "Laser Pistol", type: "weapon", damage: 10, rarity: "Rare", price: 40 },
+    { id: "shop_stim3", name: "Stimpak", type: "consumable", heal: 15, price: 10 },
+    { id: "shop_armor", name: "Combat Armor", type: "armor", hpBoost: 20, defense: 8, rarity: "Rare", price: 70 }
   ],
   "NCR Stronghold": [
-    { id: "shop_rifle", name: "Service Rifle", type: "weapon", damage: 9, rarity: "Uncommon", price: 80 },
-    { id: "shop_scrap2", name: "Scrap", type: "misc", price: 5 }
+    { id: "shop_rifle", name: "Service Rifle", type: "weapon", damage: 8, rarity: "Uncommon", price: 45 },
+    { id: "shop_scrap2", name: "Scrap", type: "misc", price: 0.25 }
   ]
 };
 
@@ -605,7 +605,7 @@ function maybeTriggerLocationEvent(location) {
     return;
   }
 
-  if (Math.random() < 0.15) {
+  if (Math.random() < 0.70) {
     const eventName = pool[Math.floor(Math.random() * pool.length)];
     gameState.events.currentLocationEvent = eventName;
     log(`Event started: ${eventName}`);
@@ -651,14 +651,14 @@ function maybeOpenShop(location) {
     return;
   }
 
-  // 50% chance to have a shop active when you arrive
-  if (Math.random() < 0.5) {
+  // 100% chance to have a shop active when you arrive
+  if (Math.random() < 1.00) {
     gameState.shop.active = true;
     gameState.shop.locationName = location.name;
     // clone items so we don't mutate base data
     gameState.shop.items = shopItems.map(item => ({ ...item }));
     renderShop();
-    log(`A trader sets up shop in ${location.name}.`);
+    log(`A merchant sets up shop in ${location.name}.`);
   } else {
     if (shopPanel) {
       shopPanel.style.display = "none";
@@ -765,11 +765,11 @@ function maybeSpawnEnemy(location) {
   const isNewVegas = location.id === "vegas";
 
   // Deathclaw rare spawn
-  if ((isWestVirginia || isNewVegas) && Math.random() < 1 / 100) {
+  if ((isWestVirginia || isNewVegas) && Math.random() < 1 / 20) {
     gameState.enemy = {
       name: "Deathclaw",
-      hp: 80,
-      maxHp: 80,
+      hp: 250,
+      maxHp: 250,
       damage: 18,
       defeated: false,
       loot: [
@@ -778,21 +778,21 @@ function maybeSpawnEnemy(location) {
       ]
     };
     combatMessageEl.textContent = "A Deathclaw emerges from the shadows!";
-    log("A Deathclaw appears! This is bad.");
+    log("A Deathclaw appears! Good luck... You'll need it.");
     return;
   }
 
   // Mothman rare spawn
-  if (isWestVirginia && Math.random() < 1 / 250) {
+  if (isWestVirginia && Math.random() < 1 / 100) {
     gameState.enemy = {
       name: "Mothman",
-      hp: 60,
-      maxHp: 60,
+      hp: 250,
+      maxHp: 250,
       damage: 14,
       defeated: false,
       loot: [
         { id: Date.now(), name: "Mothman Wing", type: "misc", quantity: 1 },
-        { id: Date.now() + 1, name: "Caps", type: "caps", caps: 75, quantity: 1 }
+        { id: Date.now() + 1, name: "Caps", type: "caps", caps: 100, quantity: 1 }
       ]
     };
     combatMessageEl.textContent = "The Mothman watches you from the dark...";
@@ -809,7 +809,7 @@ function maybeSpawnEnemy(location) {
     log(`Encountered ${gameState.enemy.name}.`);
   } else {
     gameState.enemy = null;
-    combatMessageEl.textContent = "The area is quiet.";
+    combatMessageEl.textContent = "The area is quiet. A little too quiet...";
   }
 }
 
@@ -825,7 +825,7 @@ function createEnemyForLocation(location) {
   const dmg = location.danger === "Low" ? 3 : location.danger === "Medium" ? 6 : 10;
 
   // 10% chance to drop armor
-  const maybeArmor = Math.random() < 0.10 ? [{
+  const maybeArmor = Math.random() < 0.30 ? [{
     id: Date.now() + 2,
     name: "Raider Armor",
     type: "armor",
@@ -1021,7 +1021,7 @@ lootButton.addEventListener("click", () => {
   enemy.loot.forEach((item) => {
     if (item.type === "caps" || item.caps) {
       let caps = item.caps || 0;
-      if (gameState.events.capsFrenzyActive) caps *= 2;
+      if (gameState.events.capsFrenzyActive) caps *= 3;
       gameState.player.caps += caps;
       totalCapsGained += caps;
     } else {
